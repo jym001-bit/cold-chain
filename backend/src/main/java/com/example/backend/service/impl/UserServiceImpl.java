@@ -79,6 +79,66 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    public LoginVO register(RegisterDTO registerDTO) {
+        // 1. 参数校验
+        if (registerDTO.getUsername() == null || registerDTO.getUsername().trim().isEmpty()) {
+            throw new BusinessException("用户名不能为空");
+        }
+        if (registerDTO.getPassword() == null || registerDTO.getPassword().trim().isEmpty()) {
+            throw new BusinessException("密码不能为空");
+        }
+        if (registerDTO.getRealName() == null || registerDTO.getRealName().trim().isEmpty()) {
+            throw new BusinessException("真实姓名不能为空");
+        }
+
+        // 2. 检查用户名是否已存在
+        LambdaQueryWrapper<User> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(User::getUsername, registerDTO.getUsername());
+        User existUser = userMapper.selectOne(wrapper);
+        if (existUser != null) {
+            throw new BusinessException("用户名已存在");
+        }
+
+        // 3. 创建新用户
+        User user = new User();
+        user.setUsername(registerDTO.getUsername());
+        user.setPassword(registerDTO.getPassword()); // 暂时明文存储，后期需要加密
+        user.setRealName(registerDTO.getRealName());
+        user.setPhone(registerDTO.getPhone());
+        user.setEmail(registerDTO.getEmail());
+        user.setRole("user"); // 默认角色为普通用户
+        user.setStatus(1); // 默认启用
+
+        // 4. 保存到数据库
+        int result = userMapper.insert(user);
+        if (result == 0) {
+            throw new BusinessException("注册失败");
+        }
+
+        // 5. 自动登录：生成Token
+        String token = JwtUtil.generateToken(user.getId(), user.getUsername(), user.getRole());
+
+        // 6. 将Token存入Redis
+        String redisKey = RedisConstants.TOKEN_PREFIX + token;
+        Map<String, Object> userInfo = new HashMap<>();
+        userInfo.put("userId", user.getId());
+        userInfo.put("username", user.getUsername());
+        userInfo.put("role", user.getRole());
+        userInfo.put("realName", user.getRealName());
+        redisUtil.set(redisKey, userInfo, RedisConstants.TOKEN_EXPIRE_TIME, TimeUnit.SECONDS);
+
+        // 7. 封装返回结果
+        LoginVO loginVO = new LoginVO();
+        loginVO.setToken(token);
+        loginVO.setUserId(user.getId());
+        loginVO.setUsername(user.getUsername());
+        loginVO.setRealName(user.getRealName());
+        loginVO.setRole(user.getRole());
+
+        return loginVO;
+    }
+
+    @Override
     public User getUserById(Long userId) {
         User user = userMapper.selectById(userId);
         if (user == null) {
