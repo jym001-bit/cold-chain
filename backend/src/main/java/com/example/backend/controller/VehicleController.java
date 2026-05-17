@@ -3,11 +3,13 @@ package com.example.backend.controller;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.example.backend.common.result.Result;
 import com.example.backend.dto.VehicleDTO;
+import com.example.backend.dto.VehicleMonitorDTO;
 import com.example.backend.entity.Vehicle;
 import com.example.backend.service.VehicleService;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
+import java.util.List;
 
 /**
  * 车辆控制器
@@ -81,5 +83,14 @@ public class VehicleController {
     public Result<String> updateVehicleStatus(@PathVariable Long id, @RequestParam String status) {
         vehicleService.updateVehicleStatus(id, status);
         return Result.success("更新状态成功");
+    }
+
+    /**
+     * 获取车辆监控数据（用于实时监控大屏）
+     */
+    @GetMapping("/monitor")
+    public Result<List<VehicleMonitorDTO>> getVehicleMonitorData() {
+        List<VehicleMonitorDTO> monitorData = vehicleService.getVehicleMonitorData();
+        return Result.success(monitorData);
     }
 }

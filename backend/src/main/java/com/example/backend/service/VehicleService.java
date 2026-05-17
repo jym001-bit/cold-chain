@@ -2,7 +2,10 @@ package com.example.backend.service;
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.example.backend.dto.VehicleDTO;
+import com.example.backend.dto.VehicleMonitorDTO;
 import com.example.backend.entity.Vehicle;
+
+import java.util.List;
 
 /**
  * 车辆服务接口
@@ -38,4 +41,9 @@ public interface VehicleService {
      * 更新车辆状态
      */
     void updateVehicleStatus(Long id, String status);
+
+    /**
+     * 获取车辆监控数据
+     */
+    List<VehicleMonitorDTO> getVehicleMonitorData();
 }

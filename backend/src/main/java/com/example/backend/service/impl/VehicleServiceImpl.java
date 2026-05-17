@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.example.backend.common.exception.BusinessException;
 import com.example.backend.dto.VehicleDTO;
+import com.example.backend.dto.VehicleMonitorDTO;
 import com.example.backend.entity.Vehicle;
 import com.example.backend.entity.VehicleTempZone;
 import com.example.backend.mapper.VehicleMapper;
@@ -15,7 +16,10 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 import javax.annotation.Resource;
+import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 
 /**
  * 车辆服务实现类
@@ -198,5 +202,69 @@ public class VehicleServiceImpl implements VehicleService {
         if (result == 0) {
             throw new BusinessException("更新状态失败");
         }
+    }
+
+    @Override
+    public List<VehicleMonitorDTO> getVehicleMonitorData() {
+        // 查询所有车辆
+        List<Vehicle> vehicles = vehicleMapper.selectList(null);
+        List<VehicleMonitorDTO> monitorList = new ArrayList<>();
+        Random random = new Random();
+
+        // 北京市区的一些坐标点（用于模拟车辆位置）
+        BigDecimal[][] locations = {
+                {new BigDecimal("116.397428"), new BigDecimal("39.90923")},   // 天安门
+                {new BigDecimal("116.407526"), new BigDecimal("39.904030")},  // 王府井
+                {new BigDecimal("116.391365"), new BigDecimal("39.906901")},  // 故宫
+                {new BigDecimal("116.368904"), new BigDecimal("39.913423")},  // 西单
+                {new BigDecimal("116.434446"), new BigDecimal("39.921489")},  // 三里屯
+                {new BigDecimal("116.481488"), new BigDecimal("39.989545")},  // 望京
+                {new BigDecimal("116.296203"), new BigDecimal("39.906217")},  // 五棵松
+                {new BigDecimal("116.355560"), new BigDecimal("39.874557")}   // 丰台
+        };
+
+        for (int i = 0; i < vehicles.size(); i++) {
+            Vehicle vehicle = vehicles.get(i);
+            VehicleMonitorDTO dto = new VehicleMonitorDTO();
+
+            // 基本信息
+            dto.setId(vehicle.getId());
+            dto.setPlateNo(vehicle.getPlateNo());
+            dto.setStatus(vehicle.getStatus());
+            dto.setDriverName(vehicle.getDriverName());
+            dto.setDriverPhone(vehicle.getDriverPhone());
+
+            // 模拟实时数据
+            if ("busy".equals(vehicle.getStatus())) {
+                // 在途车辆：模拟冷链温度和速度
+                BigDecimal targetTemp = new BigDecimal(random.nextInt(30) - 20); // -20到10度
+                BigDecimal fluctuation = new BigDecimal(random.nextDouble() * 0.5 - 0.25); // ±0.25度波动
+                dto.setTargetTemp(targetTemp);
+                dto.setCurrentTemp(targetTemp.add(fluctuation).setScale(1, BigDecimal.ROUND_HALF_UP));
+                dto.setSpeed(30 + random.nextInt(30)); // 30-60 km/h
+                dto.setRuntime(random.nextInt(300)); // 0-300分钟
+            } else if ("idle".equals(vehicle.getStatus())) {
+                // 空闲车辆：常温，速度为0
+                dto.setTargetTemp(new BigDecimal("15"));
+                dto.setCurrentTemp(new BigDecimal("15.0"));
+                dto.setSpeed(0);
+                dto.setRuntime(0);
+            } else {
+                // 维修车辆：常温，速度为0
+                dto.setTargetTemp(new BigDecimal("20"));
+                dto.setCurrentTemp(new BigDecimal("20.0"));
+                dto.setSpeed(0);
+                dto.setRuntime(0);
+            }
+
+            // 模拟位置（循环使用预设坐标）
+            BigDecimal[] location = locations[i % locations.length];
+            dto.setLongitude(location[0]);
+            dto.setLatitude(location[1]);
+
+            monitorList.add(dto);
+        }
+
+        return monitorList;
     }
 }
