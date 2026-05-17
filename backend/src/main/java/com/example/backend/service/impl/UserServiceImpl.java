@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.example.backend.common.constant.RedisConstants;
 import com.example.backend.common.exception.BusinessException;
 import com.example.backend.dto.LoginDTO;
+import com.example.backend.dto.RegisterDTO;
 import com.example.backend.entity.User;
 import com.example.backend.mapper.UserMapper;
 import com.example.backend.service.UserService;

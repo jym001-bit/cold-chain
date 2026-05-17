@@ -3,6 +3,7 @@ package com.example.backend.controller;
 import com.example.backend.common.constant.RedisConstants;
 import com.example.backend.common.result.Result;
 import com.example.backend.dto.LoginDTO;
+import com.example.backend.dto.RegisterDTO;
 import com.example.backend.entity.User;
 import com.example.backend.service.UserService;
 import com.example.backend.util.JwtUtil;
@@ -11,6 +12,7 @@ import com.example.backend.vo.LoginVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import javax.validation.Valid;
 import java.util.Map;
 
 @RestController
@@ -29,6 +31,15 @@ public class AuthController {
     @PostMapping("/login")
     public Result<LoginVO> login(@RequestBody LoginDTO loginDTO) {
         LoginVO loginVO = userService.login(loginDTO);
+        return Result.success(loginVO);
+    }
+
+    /**
+     * 用户注册
+     */
+    @PostMapping("/register")
+    public Result<LoginVO> register(@Valid @RequestBody RegisterDTO registerDTO) {
+        LoginVO loginVO = userService.register(registerDTO);
         return Result.success(loginVO);
     }
 
@@ -96,5 +107,50 @@ public class AuthController {
         redisUtil.delete(redisKey);
 
         return Result.success("登出成功");
+    }
+
+    /**
+     * 测试Redis连接
+     */
+    @GetMapping("/redis-test")
+    public Result<String> redisTest() {
+        try {
+            // 测试写入
+            redisUtil.set("test:key", "test-value", 60, java.util.concurrent.TimeUnit.SECONDS);
+
+            // 测试读取
+            Object value = redisUtil.get("test:key");
+
+            if (value != null) {
+                return Result.success("Redis连接正常，测试值：" + value.toString());
+            } else {
+                return Result.error("Redis写入成功但读取失败");
+            }
+        } catch (Exception e) {
+            return Result.error("Redis连接失败：" + e.getMessage());
+        }
+    }
+
+    /**
+     * 查看Redis中的token数量
+     */
+    @GetMapping("/redis-tokens")
+    public Result<String> redisTokens() {
+        try {
+            // 检查是否有token开头的key
+            Boolean hasTestToken = redisUtil.hasKey("token:test");
+
+            // 尝试获取一个已知的token（从最近登录获取）
+            String testKey = RedisConstants.TOKEN_PREFIX + "eyJhbGciOiJIUzUxMiJ9.eyJyb2xlIjoiYWRtaW4iLCJ1c2VySWQiOjEsInVzZXJuYW1lIjoiYWRtaW4iLCJzdWIiOiJhZG1pbiIsImlhdCI6MTc3ODkxNjExNiwiZXhwIjoxNzc5NTIwOTE2fQ.94gJeBF2edpeHY2c6a_wlCLrQ-cNRCFLIoElHDE6Prf6FuISZEINRwW05nbnzfMrXhSpePgdMnYnv5UatIGFLw";
+            Object tokenValue = redisUtil.get(testKey);
+
+            if (tokenValue != null) {
+                return Result.success("找到token，值：" + tokenValue.toString());
+            } else {
+                return Result.error("Redis中没有找到该token，key：" + testKey);
+            }
+        } catch (Exception e) {
+            return Result.error("查询失败：" + e.getMessage());
+        }
     }
 }
