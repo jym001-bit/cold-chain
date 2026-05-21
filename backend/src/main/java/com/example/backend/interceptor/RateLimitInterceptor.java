@@ -4,7 +4,7 @@ import com.example.backend.common.exception.BusinessException;
 import com.example.backend.util.IpUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.io.ClassPathResource;
-import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.script.DefaultRedisScript;
 import org.springframework.scripting.support.ResourceScriptSource;
 import org.springframework.stereotype.Component;
@@ -25,7 +25,7 @@ import java.util.Collections;
 public class RateLimitInterceptor implements HandlerInterceptor {
 
     @Resource
-    private RedisTemplate<String, Object> redisTemplate;
+    private StringRedisTemplate stringRedisTemplate;
 
     private DefaultRedisScript<Long> rateLimitScript;
 
@@ -72,7 +72,7 @@ public class RateLimitInterceptor implements HandlerInterceptor {
         // 执行Lua脚本
         long now = System.currentTimeMillis() / 1000; // 当前时间戳（秒）
 
-        Long result = redisTemplate.execute(
+        Long result = stringRedisTemplate.execute(
             rateLimitScript,
             Collections.singletonList(rateLimitKey),
             String.valueOf(capacity),  // 桶容量
