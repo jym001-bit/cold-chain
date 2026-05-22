@@ -54,7 +54,7 @@ public class AuthController {
         }
 
         // 1. 先从Redis验证Token是否存在
-        String redisKey = RedisConstants.TOKEN_PREFIX + token;
+        String redisKey = RedisConstants.getUserTokenKey(token);
         Object userInfoObj = redisUtil.get(redisKey);
 
         if (userInfoObj == null) {
@@ -81,7 +81,7 @@ public class AuthController {
         }
 
         // 从Redis验证Token
-        String redisKey = RedisConstants.TOKEN_PREFIX + token;
+        String redisKey = RedisConstants.getUserTokenKey(token);
         Object userInfoObj = redisUtil.get(redisKey);
 
         if (userInfoObj != null) {
@@ -103,7 +103,7 @@ public class AuthController {
         }
 
         // 从Redis删除Token
-        String redisKey = RedisConstants.TOKEN_PREFIX + token;
+        String redisKey = RedisConstants.getUserTokenKey(token);
         redisUtil.delete(redisKey);
 
         return Result.success("登出成功");
@@ -141,7 +141,7 @@ public class AuthController {
             Boolean hasTestToken = redisUtil.hasKey("token:test");
 
             // 尝试获取一个已知的token（从最近登录获取）
-            String testKey = RedisConstants.TOKEN_PREFIX + "eyJhbGciOiJIUzUxMiJ9.eyJyb2xlIjoiYWRtaW4iLCJ1c2VySWQiOjEsInVzZXJuYW1lIjoiYWRtaW4iLCJzdWIiOiJhZG1pbiIsImlhdCI6MTc3ODkxNjExNiwiZXhwIjoxNzc5NTIwOTE2fQ.94gJeBF2edpeHY2c6a_wlCLrQ-cNRCFLIoElHDE6Prf6FuISZEINRwW05nbnzfMrXhSpePgdMnYnv5UatIGFLw";
+            String testKey = RedisConstants.getUserTokenKey("eyJhbGciOiJIUzUxMiJ9.eyJyb2xlIjoiYWRtaW4iLCJ1c2VySWQiOjEsInVzZXJuYW1lIjoiYWRtaW4iLCJzdWIiOiJhZG1pbiIsImlhdCI6MTc3ODkxNjExNiwiZXhwIjoxNzc5NTIwOTE2fQ.94gJeBF2edpeHY2c6a_wlCLrQ-cNRCFLIoElHDE6Prf6FuISZEINRwW05nbnzfMrXhSpePgdMnYnv5UatIGFLw");
             Object tokenValue = redisUtil.get(testKey);
 
             if (tokenValue != null) {
