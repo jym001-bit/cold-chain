@@ -59,14 +59,18 @@ public class UserServiceImpl implements UserService {
         // 5. 生成Token
         String token = JwtUtil.generateToken(user.getId(), user.getUsername(), user.getRole());
 
-        // 6. 将Token存入Redis
-        String redisKey = RedisConstants.TOKEN_PREFIX + token;
-        Map<String, Object> userInfo = new HashMap<>();
-        userInfo.put("userId", user.getId());
-        userInfo.put("username", user.getUsername());
-        userInfo.put("role", user.getRole());
-        userInfo.put("realName", user.getRealName());
-        redisUtil.set(redisKey, userInfo, RedisConstants.TOKEN_EXPIRE_TIME, TimeUnit.SECONDS);
+        // 6. 将用户信息存入Redis（用于拦截器认证）
+        String redisKey = RedisConstants.getUserTokenKey(token);
+        // 清空密码字段，避免泄露
+        User userForCache = new User();
+        userForCache.setId(user.getId());
+        userForCache.setUsername(user.getUsername());
+        userForCache.setRealName(user.getRealName());
+        userForCache.setRole(user.getRole());
+        userForCache.setPhone(user.getPhone());
+        userForCache.setEmail(user.getEmail());
+        userForCache.setStatus(user.getStatus());
+        redisUtil.set(redisKey, userForCache, RedisConstants.TOKEN_EXPIRE_TIME, TimeUnit.SECONDS);
 
         // 7. 封装返回结果
         LoginVO loginVO = new LoginVO();
@@ -119,14 +123,18 @@ public class UserServiceImpl implements UserService {
         // 5. 自动登录：生成Token
         String token = JwtUtil.generateToken(user.getId(), user.getUsername(), user.getRole());
 
-        // 6. 将Token存入Redis
-        String redisKey = RedisConstants.TOKEN_PREFIX + token;
-        Map<String, Object> userInfo = new HashMap<>();
-        userInfo.put("userId", user.getId());
-        userInfo.put("username", user.getUsername());
-        userInfo.put("role", user.getRole());
-        userInfo.put("realName", user.getRealName());
-        redisUtil.set(redisKey, userInfo, RedisConstants.TOKEN_EXPIRE_TIME, TimeUnit.SECONDS);
+        // 6. 将用户信息存入Redis（用于拦截器认证）
+        String redisKey = RedisConstants.getUserTokenKey(token);
+        // 清空密码字段，避免泄露
+        User userForCache = new User();
+        userForCache.setId(user.getId());
+        userForCache.setUsername(user.getUsername());
+        userForCache.setRealName(user.getRealName());
+        userForCache.setRole(user.getRole());
+        userForCache.setPhone(user.getPhone());
+        userForCache.setEmail(user.getEmail());
+        userForCache.setStatus(user.getStatus());
+        redisUtil.set(redisKey, userForCache, RedisConstants.TOKEN_EXPIRE_TIME, TimeUnit.SECONDS);
 
         // 7. 封装返回结果
         LoginVO loginVO = new LoginVO();
