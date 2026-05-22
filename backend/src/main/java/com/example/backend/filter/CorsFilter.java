@@ -30,7 +30,7 @@ public class CorsFilter implements Filter {
         // 允许的请求方法
         httpResponse.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
 
-        // 允许的请求头
+        // 允许的请求头，类型，json等，token携带，Ajax请求
         httpResponse.setHeader("Access-Control-Allow-Headers",
             "Content-Type, Authorization, X-Requested-With");
 
@@ -40,7 +40,7 @@ public class CorsFilter implements Filter {
         // 预检请求的有效期（1小时）
         httpResponse.setHeader("Access-Control-Max-Age", "3600");
 
-        // 处理OPTIONS预检请求
+        // 处理OPTIONS预检请求，浏览器跨域处理
         if ("OPTIONS".equalsIgnoreCase(httpRequest.getMethod())) {
             httpResponse.setStatus(HttpServletResponse.SC_OK);
             return;
